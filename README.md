@@ -1,138 +1,113 @@
 # Gemini Streaming Chatbot with Code Generation
 
-FastAPI streaming chatbot using Google Gemini with intelligent code generation capabilities.
+FastAPI streaming chatbot using Google Gemini with intelligent code generation capabilities and session-based memory.
 
 ## Features
 
-- 🤖 **Streaming Chat**: Real-time conversation with Google Gemini AI
-- 🔧 **Smart Code Generation**: Automatically detects programming questions and generates code files
-- 📁 **Multi-file Support**: Creates complete projects with HTML, CSS, JavaScript, Python, and more
-- 🎯 **Tool Calls**: Claude-like interface that returns structured code files
-- 🔄 **Conversation History**: Maintains context across messages
+- 🤖 **Streaming Chat**: Real-time conversation with Google Gemini AI.
+- 🔧 **Smart Code Generation**: Automatically detects programming questions and generates code files.
+- 📁 **Multi-file Support**: Creates complete projects with HTML, CSS, JavaScript, Python, and more.
+- 🔄 **Conversation History**: Maintains context across messages using session-based memory.
+- 🛠️ **Session Management**: Endpoints to create, retrieve, and clear chat sessions.
 
 ## Setup
 
-1. Install dependencies:
-```bash
-uv sync
-```
+1.  **Install Dependencies**:
+    ```bash
+    uv sync
+    ```
 
-2. Set environment variable:
-```bash
-export GEMINI_API_KEY=your_api_key_here
-```
+2.  **Set Environment Variable**:
+    Create a `.env` file in the root directory and add your Gemini API key:
+    ```
+    GEMINI_API_KEY=your_api_key_here
+    ```
 
-3. Run server:
-```bash
-uv run dev
-```
-
-4. Test the code generation feature:
-```bash
-python test_code_generation.py
-```
+3.  **Run Server**:
+    ```bash
+    uv run dev
+    ```
+    The API will be available at `http://localhost:8000`.
 
 ## API Endpoints
 
-### Streaming Chat with Code Generation
+### Streaming Chat
 
-**POST** `/api/v1/chat/stream` - Streaming chat with automatic code generation
+**POST** `/api/v1/chat/stream`
 
-```json
-{
-  "message": "Create a simple HTML button with CSS and JavaScript",
-  "conversation_history": []
-}
-```
+Streams a chat response from the Gemini AI. It maintains conversation history automatically.
 
-Response formats:
-```json
-// Regular chat chunks
-{"type": "chunk", "content": "I'll create that for you..."}
+- **Request Body**:
+  ```json
+  {
+    "message": "Hello, how are you?",
+    "session_id": "optional-session-id"
+  }
+  ```
+- **Response**: A streaming response of plain text chunks. The `X-Session-ID` header in the response contains the session ID.
 
-// Code generation tool call
-{
-  "type": "tool_call",
-  "tool_name": "code_generator", 
-  "description": "Simple interactive button with HTML, CSS, and JavaScript",
-  "files": [
-    {
-      "filename": "index.html",
-      "content": "<!DOCTYPE html>...",
-      "language": "html"
-    },
-    {
-      "filename": "style.css", 
-      "content": "button { padding: 10px; }",
-      "language": "css"
-    },
-    {
-      "filename": "script.js",
-      "content": "document.querySelector('button')...",
-      "language": "javascript"
-    }
-  ]
-}
+### Code Generation
 
-// Completion
-{"type": "complete", "full_response": "I've generated 3 files for you...", "message_count": 2}
-```
+**POST** `/api/v1/chat/generate-code`
 
-### Direct Code Generation
+Generates code files based on a user prompt.
 
-**POST** `/api/v1/chat/generate-code` - Generate code without streaming
+- **Request Body**:
+  ```json
+  {
+    "prompt": "Create a React login form component"
+  }
+  ```
+- **Response**:
+  ```json
+  {
+    "description": "React login form with validation",
+    "files": [
+      {
+        "filename": "LoginForm.jsx",
+        "content": "import React, { useState } from 'react';...",
+        "language": "jsx"
+      }
+    ]
+  }
+  ```
 
-```json
-{
-  "prompt": "Create a React login form component"
-}
-```
+### Session Management
 
-Response:
-```json
-{
-  "description": "React login form with validation",
-  "files": [
-    {
-      "filename": "LoginForm.jsx",
-      "content": "import React, { useState } from 'react';...",
-      "language": "jsx"
-    }
-  ]
-}
-```
+**POST** `/api/v1/chat/session`
 
-### Health Check
+Creates a new chat session.
 
-**GET** `/api/v1/chat/health` - Service health status
+- **Response**:
+  ```json
+  {
+    "session_id": "new-session-id",
+    "status": "created"
+  }
+  ```
 
-## Code Generation Examples
+**GET** `/api/v1/chat/session/{session_id}/history`
 
-The system automatically detects programming questions and generates appropriate code files:
+Retrieves the conversation history for a given session.
 
-- **"Create a simple button"** → HTML, CSS, JS files
-- **"Build a React component"** → JSX file with component
-- **"Make a Python function"** → Python file with function
-- **"Design a login form"** → Complete form with validation
+**DELETE** `/api/v1/chat/session/{session_id}`
 
-## Frontend Integration
+Clears the memory for a given session.
 
-See `frontend_example.js` for a complete example of how to integrate the streaming chat and handle tool calls in your frontend application.
+### Health & Memory
 
-Key features:
-- Handle streaming responses
-- Process tool calls for code generation
-- Display generated files with syntax highlighting
-- Copy/download functionality
+**GET** `/api/v1/chat/health`
 
-## Programming Question Detection
+Returns the health status of the chat service.
 
-The system uses intelligent detection to identify when users are asking for code:
+**GET** `/api/v1/chat/memory/stats`
 
-- **Keywords**: create, build, make, write, generate, code, html, css, javascript, python, react
-- **Patterns**: "create a button", "build an app", "show me code"
-- **Context**: Mentions of programming languages, frameworks, or development concepts
+Returns statistics about the memory store.
 
-## API Documentation
+**POST** `/api/v1/chat/memory/cleanup`
 
-Visit `http://localhost:8000/docs` for interactive API documentation with examples and testing interface.
+Cleans up expired memory entries.
+
+## Interactive API Documentation
+
+For a detailed, interactive API documentation, visit `http://localhost:8000/docs` after starting the server.
