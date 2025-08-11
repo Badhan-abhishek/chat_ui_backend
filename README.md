@@ -17,15 +17,20 @@ FastAPI streaming chatbot using Google Gemini with intelligent code generation c
     uv sync
     ```
 
-2.  **Set Environment Variable**:
+2. **Source uv env**:
+   ```bash
+   source .venv/bin/activate
+   ```
+
+3.  **Set Environment Variable**:
     Create a `.env` file in the root directory and add your Gemini API key:
     ```
     GEMINI_API_KEY=your_api_key_here
     ```
 
-3.  **Run Server**:
+4.  **Run Server**:
     ```bash
-    uv run dev
+    uvicorn app.app:app --reload --port 8000
     ```
     The API will be available at `http://localhost:8000`.
 
